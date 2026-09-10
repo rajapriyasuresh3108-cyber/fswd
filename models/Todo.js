@@ -29,4 +29,18 @@ router.post('/', auth, async (req, res) => {
   res.json(todo);
 });
 
+router.put('/:id', auth, async (req, res) => {
+  const todo = await Todo.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true }
+  );
+  res.json(todo);
+});
+
+router.delete('/:id', auth, async (req, res) => {
+  await Todo.findByIdAndDelete(req.params.id);
+  res.send('Deleted');
+});
+
 module.exports = router;
