@@ -1,9 +1,32 @@
-const mongoose = require('mongoose');
+const express = require('express');
+const router = express.Router();
+const Todo = require('../models/Todo');
+const jwt = require('jsonwebtoken');
 
-const TodoSchema = new mongoose.Schema({
-  userId: String,
-  title: String,
-  completed: { type: Boolean, default: false }
+// Middleware for auth
+function auth(req, res, next) {
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token) return res.status(403).send('Access Denied');
+
+  const decoded = jwt.verify(token, 'SECRETKEY');
+  req.user = decoded;
+  next();
+}
+
+router.get('/', auth, async (req, res) => {
+  const todos = await Todo.find({ userId: req.user.id });
+  res.json(todos);
 });
 
-module.exports = mongoose.model('Todo', TodoSchema);
+router.post('/', auth, async (req, res) => {
+  const todo = new Todo({
+    userId: req.user.id,
+    title: req.body.title
+  });
+
+  await todo.save();
+  res.json(todo);
+});
+
+module.exports = router;
